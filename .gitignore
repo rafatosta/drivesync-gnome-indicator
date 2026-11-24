@@ -1,0 +1,14 @@
+# Editors and local tooling
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
+
+# Local packages and build outputs
+dist/
+build/
+*.zip
+*.rpm
+*.deb
+*.pkg.tar.*
