@@ -6,6 +6,7 @@ export const STATES = Object.freeze({
     UPLOADING: 'uploading',
     DOWNLOADING: 'downloading',
     SYNCING: 'syncing',
+    PAUSED: 'paused',
     ERROR: 'error',
     DISCONNECTED: 'disconnected',
 });
@@ -15,6 +16,7 @@ const EXAMPLES = [
     {state: STATES.UPLOADING, message: 'Uploading file', account: 'Personal account', file: 'video.mp4', progress: 62, conflicts: 0},
     {state: STATES.DOWNLOADING, message: 'Downloading file', account: 'Personal account', file: 'document.pdf', progress: 38, conflicts: 0},
     {state: STATES.SYNCING, message: 'Checking for changes', account: 'Personal account', file: null, progress: null, conflicts: 0},
+    {state: STATES.PAUSED, message: 'Synchronization paused', account: 'Personal account', file: null, progress: null, conflicts: 0},
     {state: STATES.ERROR, message: 'Synchronization error', account: 'Personal account', file: null, progress: null, conflicts: 2},
     {state: STATES.DISCONNECTED, message: 'Service disconnected', account: 'Personal account', file: null, progress: null, conflicts: 0},
 ];

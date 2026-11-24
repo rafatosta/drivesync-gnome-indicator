@@ -7,7 +7,7 @@ Experimental GNOME Shell extension that places a **DriveSync status icon alongsi
 ## Features
 
 - Native GNOME Quick Settings `SystemIndicator`.
-- Six simulated states: synchronized, uploading, downloading, syncing, error, and disconnected.
+- Seven simulated states: synchronized, uploading, downloading, syncing, paused, error, and disconnected. Five custom monochrome DriveSync icons are shared across these states.
 - Status tooltip and Quick Settings details (account, file, progress percentage, conflicts).
 - **Next scenario (simulation)** menu action to switch between sample states.
 - **Open DriveSync** action using the desktop application ID `com.rtosta.DriveSync.desktop`.
@@ -26,7 +26,7 @@ cd drivesync-gnome-indicator
 UUID=drivesync-indicator@rtosta.com
 TARGET="$HOME/.local/share/gnome-shell/extensions/$UUID"
 mkdir -p "$TARGET"
-cp -r extension.js metadata.json provider "$TARGET/"
+cp -r extension.js metadata.json provider icons "$TARGET/"
 ```
 
 **First install:** Log out and log back in (especially on Wayland) to allow GNOME Shell to discover the new extension. Then enable it:
@@ -40,7 +40,7 @@ You can also enable it using the GNOME **Extensions** app. The indicator should 
 
 ## Test the mock UI
 
-Open Quick Settings and select the **DriveSync** entry. Use **Next scenario (simulation)** to cycle through all six states. Check the icon, hover tooltip, status, file, progress and conflict count. The **Open DriveSync** action launches the installed desktop app when available.
+Open Quick Settings and select the **DriveSync** entry. Use **Next scenario (simulation)** to cycle through all seven states. Check the icon, hover tooltip, status, file, progress and conflict count. The **Open DriveSync** action launches the installed desktop app when available.
 
 ## Update
 
@@ -52,7 +52,7 @@ UUID=drivesync-indicator@rtosta.com
 TARGET="$HOME/.local/share/gnome-shell/extensions/$UUID"
 gnome-extensions disable "$UUID" || true
 mkdir -p "$TARGET"
-cp -r extension.js metadata.json provider "$TARGET/"
+cp -r extension.js metadata.json provider icons "$TARGET/"
 gnome-extensions enable "$UUID"
 ```
 
@@ -84,7 +84,7 @@ gnome-extensions info drivesync-indicator@rtosta.com
 journalctl --user -b | grep -iE 'gnome-shell|drivesync-indicator'
 ```
 
-If the extension does not appear, confirm the exact UUID directory, the three installed paths (`extension.js`, `metadata.json`, `provider/mockProvider.js`), Shell version, and try a new login session.
+If the extension does not appear, confirm the exact UUID directory, the installed paths (`extension.js`, `metadata.json`, `provider/mockProvider.js`, `icons/`), Shell version, and try a new login session.
 
 ## Architecture and adapter contract
 
@@ -92,7 +92,7 @@ If the extension does not appear, confirm the exact UUID directory, the three in
 
 ```ts
 type Snapshot = {
-  state: 'synced' | 'uploading' | 'downloading' | 'syncing' | 'error' | 'disconnected';
+  state: 'synced' | 'uploading' | 'downloading' | 'syncing' | 'paused' | 'error' | 'disconnected';
   message: string;
   account: string;
   file: string | null;
@@ -123,5 +123,5 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Please report your GNOME Shell version, 
 - GNOME Shell runtime tests are pending; compatibility with declared versions is not yet guaranteed.
 - Mock states are manually cycled; upload/download progress is text-only.
 - The hover tooltip and visuals need accessibility and layout testing.
-- Icons use available symbolic icon names; custom DriveSync symbolic icons are pending.
+- Custom DriveSync symbolic icons are bundled; actual Shell rendering and theme recoloring still require runtime testing.
 - D-Bus/Flatpak integration, packaging and GNOME Extensions publication are **not implemented** yet.

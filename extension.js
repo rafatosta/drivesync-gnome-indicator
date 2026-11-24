@@ -9,13 +9,21 @@ import {MockProvider, STATES} from './provider/mockProvider.js';
 
 const APP_ID = 'com.rtosta.DriveSync.desktop';
 const ICONS = {
-    [STATES.SYNCED]: 'emblem-ok-symbolic',
-    [STATES.UPLOADING]: 'folder-upload-symbolic',
-    [STATES.DOWNLOADING]: 'folder-download-symbolic',
-    [STATES.SYNCING]: 'view-refresh-symbolic',
-    [STATES.ERROR]: 'dialog-warning-symbolic',
-    [STATES.DISCONNECTED]: 'network-offline-symbolic',
+    [STATES.SYNCED]: 'drivesync-synced-symbolic',
+    [STATES.UPLOADING]: 'drivesync-syncing-symbolic',
+    [STATES.DOWNLOADING]: 'drivesync-syncing-symbolic',
+    [STATES.SYNCING]: 'drivesync-syncing-symbolic',
+    [STATES.PAUSED]: 'drivesync-paused-symbolic',
+    [STATES.ERROR]: 'drivesync-error-symbolic',
+    [STATES.DISCONNECTED]: 'drivesync-disconnected-symbolic',
 };
+
+function stateIcon(directory, state) {
+    const name = ICONS[state];
+    if (!name)
+        return new Gio.ThemedIcon({name: 'dialog-question-symbolic'});
+    return new Gio.FileIcon({file: directory.get_child('icons').get_child('hicolor').get_child('scalable').get_child('status').get_child(`${name}.svg`)});
+}
 
 function openDriveSync() {
     const app = Gio.DesktopAppInfo.new(APP_ID);
@@ -28,14 +36,15 @@ function openDriveSync() {
 
 const DriveSyncMenu = GObject.registerClass(
 class DriveSyncMenu extends QuickSettings.QuickMenuToggle {
-    _init(onNextScenario) {
+    _init(onNextScenario, directory) {
         super._init({
             title: 'DriveSync',
             subtitle: 'Loading status…',
-            iconName: ICONS[STATES.SYNCED],
+            gicon: stateIcon(directory, STATES.SYNCED),
             toggleMode: false,
         });
-        this.menu.setHeader(ICONS[STATES.SYNCED], 'DriveSync', 'Synchronization status');
+        this._directory = directory;
+        this.menu.setHeader('view-refresh-symbolic', 'DriveSync', 'Synchronization status');
 
         this._stateItem = new PopupMenu.PopupMenuItem('Loading…', {reactive: false});
         this.menu.addMenuItem(this._stateItem);
@@ -53,10 +62,9 @@ class DriveSyncMenu extends QuickSettings.QuickMenuToggle {
     }
 
     render(snapshot) {
-        const icon = ICONS[snapshot.state] ?? 'dialog-question-symbolic';
-        this.iconName = icon;
+        this.gicon = stateIcon(this._directory, snapshot.state);
         this.subtitle = snapshot.message;
-        this.menu.setHeader(icon, 'DriveSync', snapshot.message);
+        this.menu.setHeader('view-refresh-symbolic', 'DriveSync', snapshot.message);
         this._stateItem.label.text = snapshot.message;
         this._accountItem.label.text = `Account: ${snapshot.account}`;
         this._fileItem.visible = Boolean(snapshot.file);
@@ -70,12 +78,13 @@ class DriveSyncMenu extends QuickSettings.QuickMenuToggle {
 
 const DriveSyncIndicator = GObject.registerClass(
 class DriveSyncIndicator extends QuickSettings.SystemIndicator {
-    _init(provider) {
+    _init(provider, directory) {
         super._init();
         this._statusIcon = this._addIndicator();
-        this._statusIcon.icon_name = ICONS[STATES.SYNCED];
+        this._directory = directory;
+        this._statusIcon.gicon = stateIcon(directory, STATES.SYNCED);
         this._statusIcon.accessible_name = 'DriveSync';
-        this._menuItem = new DriveSyncMenu(() => provider.nextScenario());
+        this._menuItem = new DriveSyncMenu(() => provider.nextScenario(), directory);
         this.quickSettingsItems.push(this._menuItem);
 
         // The hover label is part of the mock UI, not a source of truth.
@@ -94,7 +103,7 @@ class DriveSyncIndicator extends QuickSettings.SystemIndicator {
     }
 
     _render(snapshot) {
-        this._statusIcon.icon_name = ICONS[snapshot.state] ?? 'dialog-question-symbolic';
+        this._statusIcon.gicon = stateIcon(this._directory, snapshot.state);
         this._statusIcon.accessible_name = `DriveSync: ${snapshot.message}`;
         this._tooltip.text = `${snapshot.message}${snapshot.file ? ` — ${snapshot.file}` : ''}${snapshot.progress !== null ? ` (${snapshot.progress}%)` : ''}`;
         this._menuItem.render(snapshot);
@@ -113,7 +122,7 @@ class DriveSyncIndicator extends QuickSettings.SystemIndicator {
 export default class DriveSyncExtension extends Extension {
     enable() {
         this._provider = new MockProvider();
-        this._indicator = new DriveSyncIndicator(this._provider);
+        this._indicator = new DriveSyncIndicator(this._provider, this.dir);
         Main.panel.statusArea.quickSettings.addExternalIndicator(this._indicator);
     }
 
