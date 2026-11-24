@@ -1,0 +1,8 @@
+{
+  "uuid": "drivesync-indicator@rtosta.com",
+  "name": "DriveSync Indicator (Prototype)",
+  "description": "Mock GNOME Quick Settings integration for DriveSync",
+  "shell-version": ["48", "49", "50"],
+  "version": 1,
+  "url": "https://github.com/rafatosta/drivesync-gnome-indicator"
+}
